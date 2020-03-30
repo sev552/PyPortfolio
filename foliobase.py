@@ -6,12 +6,22 @@
 # -
 
 # Basic Dependencies:
+# os, sys, csv
 # - Selenium: Webpage manipulation
 # - Beautiful Soup: Parsing HTML
-
-# Aspirational Dependencies:
-# - Pandas: Data Analysis, Modeling
+# - NumPy/Pandas: Data Analysis, Modeling
 # - Plotly(?): Data Visualization
 
 #
 # Begin
+
+import os, sys
+
+import requests, bs4
+
+# Basic Strategy & Program Structure:
+# - parse webpage for financial data, import as csv File
+# - generate dictionary/list storing present filenames
+#   - must support adding AND deleting filenames
+# - Analytics lie in supporting queries on files(imported as dataframes)
+#   - TODO?: Maintain persistent dataframe over a given program run?
