@@ -21,6 +21,7 @@ import requests, bs4
 
 # Basic Strategy & Program Structure:
 # - parse webpage for financial data, import as csv File
+#   - use selenium to drive google sheets importhtml call, import as csv
 # - generate dictionary/list storing present filenames
 #   - must support adding AND deleting filenames
 # - Analytics lie in supporting queries on files(imported as dataframes)
