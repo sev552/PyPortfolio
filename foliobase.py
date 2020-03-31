@@ -55,7 +55,7 @@ class stock_urls:
 class etf_urls:
     
     def __init__(self, ticker, asset):
-        base_url = build__base_addr(ticker, asset)
+        base_url = build_base_addr(ticker, asset)
         self.holdings_url = base_url + "holdings"
         self.holdings_cat = ["Investment Information",
                              "Detailed Information",

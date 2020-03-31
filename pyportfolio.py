@@ -1,9 +1,5 @@
-import os, sys
-import importlib
+import sys
 import foliobase as fb
-
-path = 'C:\\Users\\ajste\\OneDrive\\Documents\\GitHub\\PyPortfolio' # can't make it public with that...
-os.chdir( path )
 
 
 
