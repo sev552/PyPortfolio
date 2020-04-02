@@ -7,26 +7,27 @@
 # -
 
 # Basic Dependencies:
-# os, sys, requests, pandas
-# - Beautiful Soup: Parsing HTML
-# - NumPy/Pandas: Data Analysis, Modeling
-# - Plotly(?): Data Visualization
+# requests, pandas, re, shelve
+# - Requests: get HTML files of webpages
+# - Pandas: Data importation, cleaning, analysis
+# - re: regex validation
+# - shelve: data storage
 
 #
 # Begin
 
-import os, sys
 import shelve
 
-import requests, bs4
-
-import re
+import requests, re
+import pandas as pd
 
 import exceptions as exc
 
-# Basic Strategy & Program Structure:
-# - parse webpage for financial data, import as csv File
-#   - use selenium to drive google sheets importhtml call, import as csv
+# Basic Strategy
+# - construct urls to all relevant data pages
+# - get html with requests
+# - read into dataframe with pandas
+#
 # - generate dictionary/list storing present filenames
 #   - must support adding AND deleting filenames
 # - Analytics lie in supporting queries on files(imported as dataframes)
@@ -40,8 +41,12 @@ valid_asset_types = ["stock", "fund"]
 
 ticker_regex = re.compile(r'\d+')
 
+url_file = "url_data"
+
+table_file = "table_data"
 
 class asset_info:
+    
     
     def __init__(self, ticker, asset):
         tckr = self.validate_ticker(ticker)
@@ -52,24 +57,30 @@ class asset_info:
         
         self.validate_combo()
         
+        self.urls = {}
+        self.urls["Profile"] = self.build_base_addr() + "profile/"
         
-    # gets the ticker name
-    def name(self):
+        self.data = {}
+        
+        
+    # returns the ticker name
+    def get_name(self):
         return self.ticker
     
-    # gets the ticker's category    # Not necessarily true - url corrects if given 
-    def cat(self):
+    # returns the ticker's category    # Not necessarily true - url corrects if given wrong other type
+    def get_cat(self):
         cat = self.category
         if cat == "fund":
             cat = "etf"
         return cat
     
-    
+    # Minimal check on validity of given ticker string 
+    # TODO: refine regex
     def validate_ticker(self, ticker):
         tries = range(0,3)
         if ticker_regex.findall(ticker) != []:
-            print('there are no numbers in tickers: 3 tries left')
             for i in tries:
+                print('there are no numbers in tickers: ' + str(3-i) + " tries left.")
                 ticker = input("Type ticker again: ")
                 if ticker_regex.findall(ticker) == []:
                     break
@@ -78,10 +89,10 @@ class asset_info:
             ticker = ticker.lower()
         return ticker
         
-        # if user doesn't give valid ticker within tries, error
+        # if user doesn't give valid ticker within # of tries, error
         raise(exc.TickerError)
 
-    
+    # forces choice of valid asset category - no way to know if it's correct
     def validate_asset_category(self, asset):
         tries =range(0,3)
         for i in tries:
@@ -115,19 +126,59 @@ class asset_info:
             print("Page not found, terminating run:")
             raise(exc.TickerAssetMatchError)
         elif not response.ok:
-            print("Unexpected status code encountered, proceed at own risk\n")        
+            print("Unexpected status code encountered, proceed at own risk\n")
+            
+        response.close()
         
-        
-        
+    # saves all the urls corresponding to a given ticker to the url shelf
+    def save_urls(self):
+        save_file = shelve.open(url_file)
+        try:
+            save_file[self.get_name()]
+            print(self.get_name() + ': urls already saved!')
+            save_file.close()
+        # add ticker object
+        except KeyError:
+            save_file[self.get_name()] = self.urls
+            print(self.get_name() + ": urls saved")
+            save_file.close()
+        return
+    
+    # deletes any urls saved to a given ticker in the url shelf
+    def delete_urls(self):
+        save_file = shelve.open(url_file)
+        try:
+            del save_file[self.get_name()]
+            print("urls deleted")
+            save_file.close()
+        # urls not present
+        except KeyError:
+            print(self.get_name() + ": no urls present to delete")
+            save_file.close()
+        return
     
     
 class stock_info(asset_info):
     
     def __init__(self, ticker, asset):
         super().__init__(ticker, asset)
-        
-        
+        base_url = self.build_base_addr()
+        self.urls.update ({"Income Statment": base_url +"financials/",
+                          "Balance Sheet": base_url + "financials/balance-sheet/",
+                          "Cash Flow Statement": base_url +"financials/cash-sheet/"})
     
+        
+        
+        
+        
+        
+        
+class etf_info(asset_info):
+    
+    def __init__(self, ticker, asset):
+        super().__init__(ticker, asset)
+        base_url = self.build_base_addr()
+        self.urls.update({"Holdings": base_url + "holdings/"})
     
     
     
