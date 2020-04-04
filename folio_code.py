@@ -158,6 +158,7 @@ class asset_info:
         return
     
     
+    
 class stock_info(asset_info):
     
     def __init__(self, ticker, asset):
@@ -167,10 +168,13 @@ class stock_info(asset_info):
                           "Balance Sheet": base_url + "financials/balance-sheet/",
                           "Cash Flow Statement": base_url +"financials/cash-sheet/"})
     
+    def get_profile_data(self):
+        tables = pd.read_html(self.urls["Income Statement"])
+        tables[1] = tables[1].rename(columns = {'Unnamed: 0' : '''Fiscal year 
+                                    is July-June. All values USD millions.'''})
+        uncleaned = pd.concat(tables)
         
-        
-        
-        
+        #TODO : Clean/Convert data entry types
         
         
 class etf_info(asset_info):
